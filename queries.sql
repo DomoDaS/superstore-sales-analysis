@@ -1,69 +1,55 @@
-# Superstore Sales & Profit Dashboard
+-- SUPERSTORE SALES & PROFIT ANALYSIS
+-- Author: Dominique DaSilva
+-- Tool: Google BigQuery
+-- Description: SQL queries supporting Tableau dashboard analysis
 
-**Author:** Dominique DaSilva  
-**Tools:** SQL (Google BigQuery), Tableau  
-**Data Source:** Tableau Superstore Dataset  
+------------------------------------------------------------
+-- QUERY 1: Sales and Profit by Region and State
+------------------------------------------------------------
+SELECT 
+  Region,
+  State,
+  ROUND(SUM(Sales), 2) AS total_sales,
+  ROUND(SUM(Profit), 2) AS total_profit
+FROM `domo-project-469513.superstore_project.orders`
+GROUP BY Region, State
+ORDER BY total_sales DESC;
 
----
+------------------------------------------------------------
+-- QUERY 2: Product Category & Sub-Category Profitability
+------------------------------------------------------------
+SELECT
+  Category,
+  `Sub-Category` AS sub_category,
+  ROUND(SUM(Sales), 2) AS total_sales,
+  ROUND(SUM(Profit), 2) AS total_profit,
+  ROUND(SUM(Profit) / NULLIF(SUM(Sales), 0) * 100, 2) AS profit_margin_percent
+FROM `domo-project-469513.superstore_project.orders`
+GROUP BY Category, sub_category
+ORDER BY total_profit DESC;
 
-## Project Overview
-This project explores sales and profit performance for a retail business using the Superstore dataset.  
-The goal was to uncover insights into **regional profitability, product performance, customer behavior, and time-based sales trends.**
+------------------------------------------------------------
+-- QUERY 3: Top 10 Customers by Sales
+------------------------------------------------------------
+SELECT
+  `Customer Name` AS customer_name,
+  ROUND(SUM(Sales), 2) AS total_sales,
+  ROUND(SUM(Profit), 2) AS total_profit,
+  COUNT(DISTINCT `Order ID`) AS total_orders
+FROM `domo-project-469513.superstore_project.orders`
+GROUP BY customer_name
+ORDER BY total_sales DESC
+LIMIT 10;
 
----
-
-##  Business Questions
-1. Which regions and states generate the most sales and profit?  
-2. Which product categories and sub-categories are most profitable?  
-3. Who are the top 10 customers by total sales?  
-4. How do sales and profit change month over month?  
-
----
-
-##  Data & Methodology
-- **Data Preparation:** SQL queries written in **Google BigQuery**
-- **Visualization:** Tableau Desktop  
-- **Dataset Size:** ~9,900 records from the Superstore retail dataset  
-- **Fields Used:** Order Date, Category, Region, State, Customer Name, Sales, Profit  
-
----
-
-## SQL Highlights
-Key operations include:
-- Aggregations using `SUM()` and `ROUND()`  
-- Ranking and filtering with `ORDER BY` and `LIMIT`  
-- Grouping by multiple fields (`GROUP BY Category, sub_category`)  
-- Time-series analysis with `EXTRACT()` and `FORMAT_DATE()`  
-
-You can view the full SQL file here → [queries.sql](./queries.sql)
-
----
-
-##  Key Insights
-✅ **West Region** leads both in sales and profit performance.  
-✅ **Technology products** generate the highest margins.  
-✅ **Top 10 customers** contribute significantly to total revenue.  
-✅ **Sales and profit trends** show consistent growth with seasonal peaks.  
-
----
-
-##  Visualization
-Interactive Tableau dashboard:  
-https://public.tableau.com/app/profile/dominique.dasilva/viz/SuperstoreSalesProfitDashboard_17618317261400/SuperstoreSalesDashboard
-
----
-
-## Tools & Technologies
-- SQL (Google BigQuery)
-- Tableau
-- Excel/CSV (data preparation)
-- GitHub (project documentation)
-
----
-
-##  Contact
-📧 Email: domodasilva@yahoo.com
-
-💼 LinkedIn: https://www.linkedin.com/in/dominique-dasilva-2a2b93384/
-
-🌐 GitHub: https://github.com/DomoDaS
+------------------------------------------------------------
+-- QUERY 4: Monthly Sales and Profit Trends
+------------------------------------------------------------
+SELECT 
+  EXTRACT(YEAR FROM `Order Date`) AS order_year,
+  EXTRACT(MONTH FROM `Order Date`) AS order_month,
+  FORMAT_DATE('%b %Y', `Order Date`) AS month_label,
+  ROUND(SUM(Sales), 2) AS total_sales,
+  ROUND(SUM(Profit), 2) AS total_profit
+FROM `domo-project-469513.superstore_project.orders`
+GROUP BY order_year, order_month, month_label
+ORDER BY order_year, order_month;
